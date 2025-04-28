@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lecture Exam Quiz Part 1</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; }
+    #quiz-container { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+    .option-btn { display: block; width: 90%; margin: 10px auto; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    .option-btn:hover { background: #0056b3; }
+    #feedback { margin-top: 20px; font-size: 18px; }
+    #nav-buttons { margin-top: 20px; }
+    .nav-btn { margin: 5px; padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    .nav-btn:hover { background: #1e7e34; }
+    #progress, #score { margin-bottom: 15px; font-size: 16px; }
+  </style>
+</head>
+<body>
+
+<div id="quiz-container">
+  <div id="progress"></div>
+  <div id="score"></div>
+<img id="diagram" src="Screenshot2025-04-28at6.27.50PM.png" alt="Cell Diagram" style="max-width:100%; height:auto; display: none;">
+<img id="mitosis-diagram" src="Screenshot2025-04-28at6.28.00PM.png" alt="Mitosis Stages" style="max-width:100%; height:auto; display: none;">
+
+
+  <h2 id="question">Loading...</h2>
+  <div id="options"></div>
+  <div id="feedback"></div>
+  <div id="nav-buttons">
+    <button class="nav-btn" id="prev-btn" onclick="prevQuestion()">Previous</button>
+    <button class="nav-btn" id="next-btn" onclick="nextQuestion()">Next</button>
+  </div>
+</div>
+<div id="jump-to-question" style="margin-top: 20px;">
+  <input type="number" id="questionNumberInput" min="1" placeholder="Enter question number" style="padding: 8px; width: 50%;">
+  <button class="nav-btn" onclick="jumpToQuestion()">Go</button>
+</div>
+
+<script>
+const quiz = [
+  // True/False Section (Questions 1–15)
+  { question: "Connective tissue is composed primarily of extracellular matrix.", options: ["True", "False"], answer: "True", explanation: "Connective tissue consists largely of extracellular matrix." },
+  { question: "Materials can be transported inside the cell packaged inside membranous vesicles.", options: ["True", "False"], answer: "True", explanation: "Vesicles transport materials within cells." },
+  { question: "Folklore creatures may have originated around once unexplainable biological diseases.", options: ["True", "False"], answer: "True", explanation: "Unexplained diseases contributed to folklore." },
+  { question: "Protection, calcium storage and blood manufacture are all functions accomplished by bone.", options: ["True", "False"], answer: "True", explanation: "Bones protect organs, store minerals, and produce blood cells." },
+  { question: "Ribosomes are responsible for generating cellular energy.", options: ["True", "False"], answer: "False", explanation: "Mitochondria generate energy; ribosomes synthesize proteins." },
+  { question: "Cell theory is the idea that life is defined as that which has at least one cell.", options: ["True", "False"], answer: "True", explanation: "Cell theory states all living things are made of cells." },
+  { question: "Though they can contract HIV, some individuals are not capable of developing AIDS following HIV introduction.", options: ["True", "False"], answer: "True", explanation: "Some individuals have genetic resistance to AIDS." },
+  { question: "Blood and adipose are both examples of epithelial tissues.", options: ["True", "False"], answer: "False", explanation: "Blood and adipose are connective tissues." },
+  { question: "Digestion, absorption and quickness are all universal characteristics of life.", options: ["True", "False"], answer: "False", explanation: "Quickness is not a universal characteristic of life." },
+  { question: "The biologically active breakdown of bone minerals is accomplished by osteoclasts.", options: ["True", "False"], answer: "True", explanation: "Osteoclasts break down bone matrix." },
+  { question: "Cells are internally organized by a complex infrastructure of proteins called the cytoskeleton.", options: ["True", "False"], answer: "True", explanation: "The cytoskeleton organizes the cell's internal structure." },
+  { question: "The environment is constantly moving us in the direction of our homeostatic set points.", options: ["True", "False"], answer: "False", explanation: "The environment often moves conditions away from set points." },
+  { question: "It is likely that a muscle cell would have more mitochondria than a fat cell.", options: ["True", "False"], answer: "True", explanation: "Muscle cells require more energy and thus have more mitochondria." },
+  { question: "Proteasomes remove proteins from cells one molecule at a time.", options: ["True", "False"], answer: "True", explanation: "Proteasomes degrade proteins selectively." },
+  { question: "Cancer can grow at rates rapid enough to generate large tumors in a matter of days.", options: ["True", "False"], answer: "False", explanation: "Cancer growth is rapid but generally takes weeks or months." },
+
+  // Matching Section (Questions 16–21)
+  { question: "A student answering his neighbor when called by name.", options: ["Responsiveness", "Growth", "Digestion", "Absorption", "Conductivity"], answer: "Responsiveness", explanation: "Responsiveness is the ability to react to stimuli." },
+  { question: "The increasing size of a human fetus within the uterus.", options: ["Responsiveness", "Growth", "Digestion", "Absorption", "Conductivity"], answer: "Growth", explanation: "Growth is an increase in size." },
+  { question: "The breaking down of hamburger meat into its component proteins.", options: ["Responsiveness", "Growth", "Digestion", "Absorption", "Conductivity"], answer: "Digestion", explanation: "Digestion breaks food into smaller components." },
+  { question: "The incorporation of newly eaten proteins into a muscle.", options: ["Responsiveness", "Growth", "Digestion", "Absorption", "Conductivity"], answer: "Absorption", explanation: "Absorption involves taking nutrients into tissues." },
+  { question: "A signal from the brain informing the torso muscles to begin contracting.", options: ["Responsiveness", "Growth", "Digestion", "Absorption", "Conductivity"], answer: "Conductivity", explanation: "Conductivity is transmitting a signal." },
+
+// Matching Questions (22–27)
+{ question: "When the physiological response is in the opposite direction of the stimulus.", options: ["negative feedback", "positive feedback", "sensor", "integrator", "blood glucose"], answer: "negative feedback", explanation: "Negative feedback reverses the direction of the stimulus." },
+{ question: "When the physiological response moves conditions back to the set point.", options: ["negative feedback", "positive feedback", "sensor", "integrator", "blood glucose"], answer: "positive feedback", explanation: "Positive feedback moves conditions away from the set point." },
+{ question: "Thermogenic shivering in response to dropping environmental temperature.", options: ["negative feedback", "positive feedback", "sensor", "integrator", "blood glucose"], answer: "negative feedback", explanation: "Shivering is a negative feedback response to cold." },
+{ question: "Temperature receptors embedded in the skin.", options: ["negative feedback", "positive feedback", "sensor", "integrator", "blood glucose"], answer: "sensor", explanation: "Receptors detecting temperature are sensors." },
+{ question: "An example of a potential physiological stimulus.", options: ["negative feedback", "positive feedback", "sensor", "integrator", "blood glucose"], answer: "blood glucose", explanation: "Changes in blood glucose levels act as physiological stimuli." },
+{ question: "Triggers a particular physiological response based upon incoming input.", options: ["negative feedback", "positive feedback", "sensor", "integrator", "blood glucose"], answer: "integrator", explanation: "The integrator triggers a response after processing input." },
+
+// Matching Questions (28–33)
+{ question: "Surrounded by a double layer membrane containing great numbers of pores.", options: ["flagella", "nucleus", "lysosome", "Golgi apparatus", "mitochondrion"], answer: "nucleus", explanation: "The nucleus is surrounded by a double membrane with pores." },
+{ question: "Engineered by the coordinated extension of the cytoskeleton.", options: ["flagella", "nucleus", "lysosome", "Golgi apparatus", "mitochondrion"], answer: "flagella", explanation: "Flagella are formed by the extension of the cytoskeleton." },
+{ question: "Composed of a double layer membrane with internal cristae.", options: ["flagella", "nucleus", "lysosome", "Golgi apparatus", "mitochondrion"], answer: "mitochondrion", explanation: "Mitochondria have a double membrane and cristae inside." },
+{ question: "Responsible for cellular digestion and disposal of molecules.", options: ["flagella", "nucleus", "lysosome", "Golgi apparatus", "mitochondrion"], answer: "lysosome", explanation: "Lysosomes digest and dispose of waste molecules." },
+{ question: "Cross-sectioning reveals nine pairs of microtubules in a circular formation.", options: ["flagella", "nucleus", "lysosome", "Golgi apparatus", "mitochondrion"], answer: "flagella", explanation: "Flagella have a 9+2 arrangement of microtubules." },
+{ question: "Generates membranous vesicles utilized for cellular packaging.", options: ["flagella", "nucleus", "lysosome", "Golgi apparatus", "mitochondrion"], answer: "Golgi apparatus", explanation: "The Golgi apparatus packages proteins into vesicles." },
+
+// Matching Questions (34–39)
+{ question: "Released when blood calcium blood levels decrease below normal.", options: ["calcitonin", "parathyroid hormone"], answer: "parathyroid hormone", explanation: "Parathyroid hormone is released when blood calcium drops." },
+{ question: "Causes calcium to be deposited into bone matrix.", options: ["calcitonin", "parathyroid hormone"], answer: "calcitonin", explanation: "Calcitonin promotes calcium deposition into bone." },
+{ question: "Exerts a stimulatory effect upon osteoclasts.", options: ["calcitonin", "parathyroid hormone"], answer: "parathyroid hormone", explanation: "Parathyroid hormone stimulates osteoclasts." },
+{ question: "Manufactured by specialized cells located in the thyroid gland.", options: ["calcitonin", "parathyroid hormone"], answer: "calcitonin", explanation: "Calcitonin is made by thyroid gland cells." },
+{ question: "Increases renal absorption of calcium from urine.", options: ["calcitonin", "parathyroid hormone"], answer: "parathyroid hormone", explanation: "Parathyroid hormone promotes calcium reabsorption by kidneys." },
+{ question: "Reduces the levels of free calcium in the bloodstream.", options: ["calcitonin", "parathyroid hormone"], answer: "calcitonin", explanation: "Calcitonin lowers blood calcium levels." },
+
+// Multiple Choice Questions (40–58)
+{ question: "Various tissues combine in certain proportions and patterns to form a(n)", options: ["organ system", "subtissue", "germ layer", "organ", "organism"], answer: "organ", explanation: "Various tissues form an organ." },
+{ question: "The brain maintains information of how things should be operating. This information is in the form of", options: ["receptors", "integrators", "effectors", "set points", "regulators"], answer: "set points", explanation: "The brain stores set points for homeostasis." },
+{ question: "Bones are important in balancing which mineral in the body?", options: ["sodium", "potassium", "iron", "magnesium", "calcium"], answer: "calcium", explanation: "Bones balance calcium levels." },
+{ question: "All but which of the following are associated with bone formation?", options: ["osteoblasts", "cartilage", "osteoporosis", "marrow cavity formation", "calcium"], answer: "osteoporosis", explanation: "Osteoporosis is a bone disease, not part of bone formation." },
+{ question: "Which statement is false?", options: ["Calcium is the most important mineral involved with bone tissue turnover.", "Osteoblasts and osteoclasts are involved with the reabsorption and repair of bones.", "Bone mass decreases with age.", "Males have greater problems with loss of bone tissue than females do.", "Marrow fills the cavities in the spaces of the spongy bone and in the center of the shaft of the bone almost as quickly as the spaces are formed."], answer: "Males have greater problems with loss of bone tissue than females do.", explanation: "Females generally have greater bone loss than males." },
+{ question: "In spongy bone tissue the spaces are filled with", options: ["air", "blood", "cartilage", "marrow", "lymph"], answer: "marrow", explanation: "Spongy bone spaces are filled with marrow." },
+{ question: "Arthritis is a condition in which", options: ["bones are unusually fragile and break easily", "the bone marrow does not develop properly", "there is an inflammation of the joints", "the epiphyses do not permit growth", "tendons are stretched"], answer: "there is an inflammation of the joints", explanation: "Arthritis causes joint inflammation." },
+{ question: "A small tear in a ligament is called a", options: ["strain", "fracture", "bruise", "dislocation", "sprain"], answer: "sprain", explanation: "A sprain is a ligament tear." },
+{ question: "A strap of dense connective tissue that connects muscle to bone is called a", options: ["ligament", "cartilage", "myofibril", "tendon", "filament"], answer: "tendon", explanation: "Tendons connect muscle to bone." },
+{ question: "Which hormone is produced resulting in the storage of calcium in bone?", options: ["parathyroid hormone", "melatonin", "calcitonin", "testosterone", "estrogen"], answer: "calcitonin", explanation: "Calcitonin stores calcium into bone." },
+{ question: "Which organelle is directly responsible for the digestion of materials within the cell?", options: ["endoplasmic reticulum", "ribosome", "plasma membrane", "nucleus", "lysosome"], answer: "lysosome", explanation: "Lysosomes digest cellular materials." },
+{ question: "Which of these is the localized site for the majority of the DNA in the cell?", options: ["ribosomes", "Golgi body", "nucleus", "mitochondria", "vesicles"], answer: "nucleus", explanation: "The nucleus holds most of the DNA." },
+{ question: "These contain enzymes that break down various unwanted substances.", options: ["mitochondria", "Golgi bodies", "nuclei", "ribosomes", "lysosomes"], answer: "lysosomes", explanation: "Lysosomes contain digestive enzymes." },
+{ question: "What type of microscope uses two or more glass lenses to refract incoming light rays to form an enlarged image of the specimen?", options: ["compound", "scanning electron", "transmission electron", "tunneling electron", "contour"], answer: "compound", explanation: "Compound microscopes use lenses and light." },
+{ question: "The organelle that manufactures protein is the", options: ["nucleus", "ribosome", "proteasome", "golgi apparatus", "flagella"], answer: "ribosome", explanation: "Ribosomes manufacture proteins." },
+{ question: "The interior surface area of mitochondria is greatly increased by", options: ["plastids", "cristae", "centrioles", "nucleoli", "microfilaments"], answer: "cristae", explanation: "Cristae increase mitochondrial surface area." },
+{ question: "The phospholipid molecules of most membranes have", options: ["a hydrophobic head and a hydrophilic tail", "a hydrophobic head and a hydrophobic tail", "a hydrophobic head and two hydrophobic tails", "a hydrophilic head and two hydrophobic tails", "none of these"], answer: "a hydrophilic head and two hydrophobic tails", explanation: "Phospholipids have hydrophilic heads and hydrophobic tails." },
+{ question: "DNA is copied during which phase of the cell cycle?", options: ["S", "G1", "G2", "M", "telophase"], answer: "S", explanation: "DNA replication occurs in the S phase." },
+{ question: "Human gametes contain this many chromosomes.", options: ["46", "46 pairs", "23", "23 pairs", "26 pairs"], answer: "23", explanation: "Human gametes have 23 chromosomes." },
+
+// Identification Questions (59–66)
+{ question: "The organelle whose numbers would likely increase in response to an increase in the cell's activity level.", options: ["A. Mitochondrion", "B. Plasma Membrane", "C. Rough ER", "D. Golgi Apparatus", "E. Nucleus"], answer: "A. Mitochondrion", explanation: "Mitochondria increase to supply more energy for active cells." },
+{ question: "The cell part that selectively controls the entry and exit of materials into and out of the cell.", options: ["A. Mitochondrion", "B. Plasma Membrane", "C. Rough ER", "D. Golgi Apparatus", "E. Nucleus"], answer: "B. Plasma Membrane", explanation: "The plasma membrane regulates what enters and exits the cell." },
+{ question: "The organelle on which the ribosomes serve as sites for protein assembly.", options: ["A. Mitochondrion", "B. Plasma Membrane", "C. Rough ER", "D. Golgi Apparatus", "E. Nucleus"], answer: "C. Rough ER", explanation: "Rough ER is studded with ribosomes for protein synthesis." },
+{ question: "The organelle where proteins and lipids are sorted for export.", options: ["A. Mitochondrion", "B. Plasma Membrane", "C. Rough ER", "D. Golgi Apparatus", "E. Nucleus"], answer: "D. Golgi Apparatus", explanation: "Golgi apparatus sorts and packages molecules for export." },
+{ question: "The area of the cell where DNA is used to manufacture RNA-based instructions for making proteins.", options: ["A. Mitochondrion", "B. Plasma Membrane", "C. Rough ER", "D. Golgi Apparatus", "E. Nucleus"], answer: "E. Nucleus", explanation: "The nucleus transcribes DNA into RNA." },
+{ question: "The organelle with a complex structure of cristae within its interior.", options: ["A. Mitochondrion", "B. Plasma Membrane", "C. Rough ER", "D. Golgi Apparatus", "E. Nucleus"], answer: "A. Mitochondrion", explanation: "Mitochondria have internal folds called cristae to increase surface area." },
+{ question: "The cell part primarily constructed out of phospholipids.", options: ["A. Mitochondrion", "B. Plasma Membrane", "C. Rough ER", "D. Golgi Apparatus", "E. Nucleus"], answer: "B. Plasma Membrane", explanation: "The plasma membrane is made of a phospholipid bilayer." },
+{ question: "The organelle theoretically supposed to have originated as a single-celled organism.", options: ["A. Mitochondrion", "B. Plasma Membrane", "C. Rough ER", "D. Golgi Apparatus", "E. Nucleus"], answer: "A. Mitochondrion", explanation: "Mitochondria are believed to have evolved from free-living bacteria." },
+
+// New Typing Questions (67–69)
+{ 
+  question: "Identify the stage of mitosis in the first figure.", 
+  type: "text", 
+  answer: "metaphase", 
+  explanation: "The first figure shows metaphase where chromosomes align in the center."
+},
+{ 
+  question: "Identify the stage of mitosis in the second figure.", 
+  type: "text", 
+  answer: "anaphase", 
+  explanation: "The second figure shows anaphase where sister chromatids are pulled apart."
+},
+{ 
+  question: "Identify the stage of mitosis in the third figure.", 
+  type: "text", 
+  answer: "telophase", 
+  explanation: "The third figure shows telophase where two new nuclei form."
+},
+
+// Typing Questions (78–82)
+{ 
+  question: "The nuclear membrane is removed and chromosomes become visible.", 
+  type: "text", 
+  answer: "prophase", 
+  explanation: "During prophase, the nuclear envelope breaks down and chromosomes condense."
+},
+{ 
+  question: "Centromeres are split to generate two individual sister chromatids.", 
+  type: "text", 
+  answer: "anaphase", 
+  explanation: "During anaphase, centromeres split and sister chromatids separate."
+},
+{ 
+  question: "The nuclear membrane is rebuilt in the daughter cells.", 
+  type: "text", 
+  answer: "telophase", 
+  explanation: "During telophase, the nuclear membrane reforms around chromosomes."
+},
+{ 
+  question: "Sister chromatids are pulled apart by centriole spindle fibers.", 
+  type: "text", 
+  answer: "anaphase", 
+  explanation: "Spindle fibers pull sister chromatids apart during anaphase."
+},
+{ 
+  question: "Chromosomes are precisely aligned across the equatorial plate.", 
+  type: "text", 
+  answer: "metaphase", 
+  explanation: "In metaphase, chromosomes align at the cell's equator."
+},
+
+// Fill in the Blank Questions (83–88)
+{ 
+  question: "The _____ theory offers that mitochondria were once single-celled organisms.", 
+  type: "text", 
+  answer: "endosymbiotic", 
+  explanation: "The endosymbiotic theory explains the origin of mitochondria."
+},
+{ 
+  question: "Cancellous bone is an example of a ____ tissue.", 
+  type: "text", 
+  answer: "connective", 
+  explanation: "Cancellous (spongy) bone is a type of connective tissue."
+},
+{ 
+  question: "The phenomenon by which cells initiate self-destruction is called _____.", 
+  type: "text", 
+  answer: "apoptosis", 
+  explanation: "Apoptosis is programmed cell death."
+},
+{ 
+  question: "The study of the human organism in its diseased condition is called _____.", 
+  type: "text", 
+  answer: "pathology", 
+  explanation: "Pathology studies diseases and their effects."
+},
+{ 
+  question: "_____ refers to the evacuation of large amounts of waste materials from the body.", 
+  type: "text", 
+  answer: "excretion", 
+  explanation: "Excretion removes waste products from the body."
+},
+{ 
+  question: "The human set point for blood glucose is ____ mg/ml.", 
+  type: "text", 
+  answer: "100", 
+  explanation: "Normal blood glucose set point is around 100 mg/ml."
+},
+
+
+];
+
+let currentQuestion = 0;
+let correctAnswers = 0;
+let answered = Array(quiz.length).fill(null);
+
+function loadQuestion() {
+  document.getElementById("feedback").innerHTML = "";
+  document.getElementById("next-btn").style.display = "none";
+  document.getElementById("prev-btn").style.display = currentQuestion === 0 ? "none" : "inline-block";
+  document.getElementById("progress").textContent = `Question ${currentQuestion + 1} of ${quiz.length}`;
+  document.getElementById("score").textContent = `Correct Answers: ${correctAnswers}`;
+  const q = quiz[currentQuestion];
+  document.getElementById("question").textContent = q.question;
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+
+if (q.type === "text") {
+    // 🔥 This part for typing question
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = "textAnswer";
+    input.className = "option-btn";
+    optionsDiv.appendChild(input);
+
+const submitBtn = document.createElement("button");
+    submitBtn.textContent = "Submit Answer";
+    submitBtn.className = "option-btn";
+    submitBtn.onclick = () => checkTextAnswer();
+    optionsDiv.appendChild(submitBtn);
+  } else {
+
+  if (q.options.length > 0) {
+    q.options.forEach(opt => {
+      const button = document.createElement("button");
+      button.textContent = opt;
+      button.className = "option-btn";
+      button.onclick = () => checkAnswer(opt);
+      optionsDiv.appendChild(button);
+    });
+  }
+}
+if (currentQuestion >= 57 && currentQuestion <= 64) {
+    document.getElementById("diagram").style.display = "block";
+  } else {
+    document.getElementById("diagram").style.display = "none";
+  }
+
+if (currentQuestion >= 65 && currentQuestion <= 67) {
+    document.getElementById("mitosis-diagram").style.display = "block";
+  } else {
+    document.getElementById("mitosis-diagram").style.display = "none";
+  }
+}
+
+function checkTextAnswer() {
+  const q = quiz[currentQuestion];
+  const userAnswer = document.getElementById("textAnswer").value.trim().toLowerCase();
+
+  if (answered[currentQuestion] === null) {
+    if (userAnswer === q.answer.toLowerCase()) {
+      correctAnswers++;
+      document.getElementById("feedback").innerHTML = "<span style='color:green;'>Correct!</span>";
+    } else {
+      document.getElementById("feedback").innerHTML = `<span style='color:red;'>Wrong. Correct Answer: ${q.answer}<br>${q.explanation}</span>`;
+    }
+    answered[currentQuestion] = userAnswer;
+  } else {
+    document.getElementById("feedback").innerHTML = "<span style='color:gray;'>You already answered this question.</span>";
+  }
+
+  document.getElementById("options").innerHTML = "";
+  document.getElementById("next-btn").style.display = "inline-block";
+  document.getElementById("score").textContent = `Correct Answers: ${correctAnswers}`;
+}
+
+
+function checkAnswer(selected) {
+  const q = quiz[currentQuestion];
+  if (answered[currentQuestion] === null) {
+    if (selected === q.answer) {
+      correctAnswers++;
+      document.getElementById("feedback").innerHTML = "<span style='color:green;'>Correct!</span>";
+    } else {
+      document.getElementById("feedback").innerHTML = `<span style='color:red;'>Wrong. Correct Answer: ${q.answer}<br>${q.explanation}</span>`;
+    }
+    answered[currentQuestion] = selected;
+  } else {
+    document.getElementById("feedback").innerHTML = "<span style='color:gray;'>You already answered this question.</span>";
+  }
+  document.getElementById("options").innerHTML = "";
+  document.getElementById("next-btn").style.display = "inline-block";
+  document.getElementById("score").textContent = `Correct Answers: ${correctAnswers}`;
+}
+
+function nextQuestion() {
+  if (currentQuestion < quiz.length - 1) {
+    currentQuestion++;
+    loadQuestion();
+  } else {
+    document.getElementById("quiz-container").innerHTML = `<h2>Quiz Complete!</h2><p>Your Score: ${correctAnswers} out of ${quiz.length}</p>`;
+  }
+}
+
+function prevQuestion() {
+  if (currentQuestion > 0) {
+    currentQuestion--;
+    loadQuestion();
+  }
+}
+    function jumpToQuestion() {
+      const input = document.getElementById("questionNumberInput").value;
+      const target = parseInt(input);
+
+      if (!isNaN(target) && target >= 1 && target <= quiz.length) {
+        currentQuestion = target - 1;
+        loadQuestion();
+      } else {
+        alert("Invalid question number. Please enter a number between 1 and " + quiz.length + ".");
+      }
+    }
+
+
+window.onload = loadQuestion;
+</script>
+
+</body>
+</html>
